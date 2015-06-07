@@ -1,7 +1,6 @@
 package ru.isavin.grep;
 
 import java.io.*;
-import java.nio.Buffer;
 
 /**
  * @author ilasavin
@@ -52,12 +51,21 @@ public class MyGrep {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line = null;
             while ((line = br.readLine()) != null) {
-                if (line.contains(pattern)) {
+                if (lineMatches(line, pattern, true)) {
                     System.out.println(line);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean lineMatches(String line, String pattern, boolean caseSensitive) {
+        if (caseSensitive) {
+            return line.contains(pattern);
+        } else {
+            return line.toLowerCase().indexOf(pattern.toLowerCase()) >= 0;
+        }
+
     }
 }
