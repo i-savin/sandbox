@@ -1,6 +1,7 @@
 package ru.isavin.grep;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * @author ilasavin
@@ -22,7 +23,7 @@ public class MyGrep {
         if (args.length == 1) {
             myGrep = new MyGrep();
             pattern = args[0];
-        } else {
+        } else if (args.length >= 2) {
             File file = new File(args[0]);
             try {
                 file = new File(args[0]);
@@ -32,10 +33,23 @@ public class MyGrep {
                 System.err.println("MyGrep: " + file + ": no such file or directory");
                 System.exit(-2);
             }
+        } else {
+            System.err.println("usage: MyGrep input_string string_to_search");
+            System.exit(-1);
         }
+        boolean caseSensitive = false;
+        boolean allPatterns = false;
 
+        for (String arg : args) {
+            if ("-c".equals(arg)) {
+                caseSensitive = true;
+            }
+            if ("-a".equals(arg)) {
+                allPatterns = true;
+            }
+        }
 //        new String[]{"/Users/ilasavin/junk",
-        myGrep.grep(pattern);
+        myGrep.grep(caseSensitive, allPatterns, pattern.split(","));
     }
 
     public MyGrep(File file) throws FileNotFoundException {
@@ -46,12 +60,24 @@ public class MyGrep {
         inputStream = System.in;
     }
 
-    public void grep(String pattern) {
-
+    public void grep(boolean caseSensitive, boolean allPatternsCheck, String... patterns) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line = null;
             while ((line = br.readLine()) != null) {
-                if (lineMatches(line, pattern, true)) {
+                boolean allPresent = true;
+                for (String pattern : patterns) {
+                    if (allPatternsCheck && !allPresent) {
+                        break;
+                    }
+                    if (lineMatches(line, pattern, caseSensitive)) {
+                        if (!allPatternsCheck) {
+                            break;
+                        }
+                    } else {
+                        allPresent = false;
+                    }
+                }
+                if (allPresent) {
                     System.out.println(line);
                 }
             }
