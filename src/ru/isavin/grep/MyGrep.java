@@ -1,7 +1,8 @@
 package ru.isavin.grep;
 
 import java.io.*;
-import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author ilasavin
@@ -10,10 +11,23 @@ import java.util.List;
 public class MyGrep {
 
     private InputStream inputStream;
+    /**
+     * true, если поиск происходит по регулярному выражению
+     */
+    private boolean regexp;
+    /**
+     * true, если поиск должен быть регистрозависимым
+     */
+    private boolean caseSensitive;
+    /**
+     * true, если в строке должны найтись непременно ВСЕ шаблоны поиска,
+     *                         иначе найтись должен хотя бы один
+     */
+    private boolean allPatterns;
 
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.err.println("usage: MyGrep input_string string_to_search");
+            System.err.println("usage: MyGrep [file] [pattern] [-c] [-a] [-r]");
             System.exit(-1);
         }
 
@@ -39,6 +53,7 @@ public class MyGrep {
         }
         boolean caseSensitive = false;
         boolean allPatterns = false;
+        boolean isRegexp = false;
 
         for (String arg : args) {
             if ("-c".equals(arg)) {
@@ -47,9 +62,15 @@ public class MyGrep {
             if ("-a".equals(arg)) {
                 allPatterns = true;
             }
+            if ("-r".equals(arg)) {
+                isRegexp = true;
+            }
         }
+        myGrep.setCaseSensitive(caseSensitive);
+        myGrep.setAllPatterns(allPatterns);
+        myGrep.setRegexp(isRegexp);
 //        new String[]{"/Users/ilasavin/junk",
-        myGrep.grep(caseSensitive, allPatterns, pattern.split(","));
+        myGrep.grep(pattern.split(","));
     }
 
     public MyGrep(File file) throws FileNotFoundException {
@@ -60,17 +81,20 @@ public class MyGrep {
         inputStream = System.in;
     }
 
-    public void grep(boolean caseSensitive, boolean allPatternsCheck, String... patterns) {
+    /**
+     * @param patterns массив шалонов поиска
+     */
+    public void grep(String... patterns) {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line = null;
+            String line;
             while ((line = br.readLine()) != null) {
                 boolean allPresent = true;
                 for (String pattern : patterns) {
-                    if (allPatternsCheck && !allPresent) {
+                    if (allPatterns && !allPresent) {
                         break;
                     }
-                    if (lineMatches(line, pattern, caseSensitive)) {
-                        if (!allPatternsCheck) {
+                    if (lineMatches(line, pattern)) {
+                        if (!allPatterns) {
                             break;
                         }
                     } else {
@@ -86,12 +110,45 @@ public class MyGrep {
         }
     }
 
-    private boolean lineMatches(String line, String pattern, boolean caseSensitive) {
-        if (caseSensitive) {
-            return line.contains(pattern);
+    private boolean lineMatches(String line, String pattern) {
+        if (regexp) {
+            return lineMatchesRegexp(line, pattern);
         } else {
-            return line.toLowerCase().indexOf(pattern.toLowerCase()) >= 0;
+            if (caseSensitive) {
+                return line.contains(pattern);
+            } else {
+                return line.toLowerCase().contains(pattern.toLowerCase());
+            }
         }
+    }
 
+    private boolean lineMatchesRegexp(String line, String regexp) {
+        Pattern pattern = Pattern.compile(regexp);
+        Matcher matcher = pattern.matcher(line);
+        return matcher.find();
+    }
+
+    public boolean isRegexp() {
+        return regexp;
+    }
+
+    public void setRegexp(boolean regexp) {
+        this.regexp = regexp;
+    }
+
+    public boolean isCaseSensitive() {
+        return caseSensitive;
+    }
+
+    public void setCaseSensitive(boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
+    }
+
+    public boolean isAllPatterns() {
+        return allPatterns;
+    }
+
+    public void setAllPatterns(boolean allPatterns) {
+        this.allPatterns = allPatterns;
     }
 }
