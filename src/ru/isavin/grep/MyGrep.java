@@ -1,6 +1,8 @@
 package ru.isavin.grep;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,11 +35,6 @@ public class MyGrep {
     private boolean allPatterns;
 
     public static void main(String[] args) {
-        if (args.length == 0) {
-            System.err.println("usage: MyGrep [file] [pattern] [-c] [-a] [-r]");
-            System.exit(-1);
-        }
-
         MyGrep myGrep = null;
         String pattern = null;
 
@@ -55,7 +52,7 @@ public class MyGrep {
                 System.exit(-2);
             }
         } else {
-            System.err.println("usage: MyGrep input_string string_to_search");
+            System.err.println("usage: MyGrep [file] [pattern] [-c] [-a] [-r]");
             System.exit(-1);
         }
         boolean caseSensitive = false;
@@ -91,7 +88,8 @@ public class MyGrep {
     /**
      * @param patterns массив шалонов поиска
      */
-    public void grep(String... patterns) {
+    public List<String> grep(String... patterns) {
+        List<String> result = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -101,6 +99,7 @@ public class MyGrep {
                         break;
                     }
                     if (lineMatches(line, pattern)) {
+                        allPresent = true;
                         if (!allPatterns) {
                             break;
                         }
@@ -109,12 +108,14 @@ public class MyGrep {
                     }
                 }
                 if (allPresent) {
-                    System.out.println(line);
+                    result.add(line);
+//                    System.out.println(line);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return result;
     }
 
     private boolean lineMatches(String line, String pattern) {
@@ -157,5 +158,13 @@ public class MyGrep {
 
     public void setAllPatterns(boolean allPatterns) {
         this.allPatterns = allPatterns;
+    }
+
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+
+    public void setInputStream(InputStream inputStream) {
+        this.inputStream = inputStream;
     }
 }
