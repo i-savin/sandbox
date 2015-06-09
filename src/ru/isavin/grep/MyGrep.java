@@ -75,6 +75,7 @@ public class MyGrep {
         myGrep.setRegexp(isRegexp);
 //        new String[]{"/Users/ilasavin/junk",
         myGrep.grep(pattern.split(","));
+
     }
 
     public MyGrep(File file) throws FileNotFoundException {
@@ -85,10 +86,39 @@ public class MyGrep {
         inputStream = System.in;
     }
 
+    public void grep(String... patterns) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                boolean allPresent = true;
+                for (String pattern : patterns) {
+                    if (allPatterns && !allPresent) {
+                        break;
+                    }
+                    if (lineMatches(line, pattern)) {
+                        allPresent = true;
+                        if (!allPatterns) {
+                            break;
+                        }
+                    } else {
+                        allPresent = false;
+                    }
+                }
+                if (allPresent) {
+                    System.out.println(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
+     * Совпавшие строки добавляются в список
+     *
      * @param patterns массив шалонов поиска
      */
-    public List<String> grep(String... patterns) {
+    public List<String> grepToList(String... patterns) {
         List<String> result = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
