@@ -23,8 +23,7 @@ public class Parser {
             Integer.parseInt(cell);
             return "Number!";
         } catch (NumberFormatException e) {
-            //TODO  сделать собственный класс исключений
-            throw new Exception();
+            throw new ParseException("Incorrect value");
         }
     }
 }
