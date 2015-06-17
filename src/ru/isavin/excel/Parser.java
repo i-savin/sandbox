@@ -1,5 +1,10 @@
 package ru.isavin.excel;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -10,62 +15,96 @@ import java.util.StringTokenizer;
  * @since 15.06.15
  */
 public class Parser {
-    enum Operation {
-        PLUS("+", 0),
-        MINUS("-", 0),
-        MUL("*", 0),
-        DIV("/", 0),
-        EQ("=", 1),
-        AP("'", 1);
+    private InputStream is;
 
-        private String symbol;
-        private int priority;
+    private final static String DELIMITER = "+-*/";
 
-        Operation(String symbol, int priority) {
-            this.symbol = symbol;
-            this.priority = priority;
-        }
+    public Parser(InputStream is) {
+        this.is = is;
+    }
 
-        public int getPriority() {
-            return this.priority;
-        }
+    public Cell[][] parse() throws ParseException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is));) {
+            String firstLine = br.readLine();
+            Cell[][] table = null;
+            int rows = 0;
+            int columns = 0;
+            if (firstLine != null) {
+                String[] dimension = firstLine.split("\t");
+                if (dimension.length != 2) {
+                    throw new ParseException("Incorrect table size");
+                }
+                rows = Integer.parseInt(dimension[0]);
+                columns = Integer.parseInt(dimension[1]);
+                table = new Cell[rows][columns];
+            }
 
-        public static Operation getValue(String value) {
-            if ("=".equals(value)) {
-                return Operation.EQ;
+            String line = null;
+            int rowCount = 0;
+            while ((line = br.readLine()) != null) {
+                StringTokenizer st = new StringTokenizer(line, "\t");
+                if (st.countTokens() != columns) {
+                    throw new ParseException("Incorrect line: " + line);
+                }
+
+                for (int i = 0; i < columns; i++) {
+                    table[rowCount][i] = new Cell(st.nextToken());
+                }
+                if (++rowCount == rows) {
+                    break;
+                }
             }
-            if ("+".equals(value)) {
-                return Operation.PLUS;
-            }
-            if ("-".equals(value)) {
-                return Operation.MINUS;
-            }
-            if ("/".equals(value)) {
-                return Operation.DIV;
-            }
-            if ("*".equals(value)) {
-                return Operation.MUL;
-            }
-            if ("'".equals(value)) {
-                return Operation.AP;
-            }
-            throw new IllegalArgumentException("No enum constant ru.isavin.excel.Parser.Operation." + value);
+            return table;
+        } catch (IOException | NumberFormatException e) {
+            throw new ParseException(e);
         }
     }
 
-    String delimiter = "+-*/";
+    public Cell[][] evaluate(Cell[][] table) {
+        for (int i = 0; i < table.length; i++) {
+            for (int j = 0; j < table[i].length; j++) {
+                String value;
+                try {
+                    value = evaluateValue(table[i][j].getValue());
+                } catch (EvaluateException e) {
+                    value = "#" + e.getMessage();
+                }
+                table[i][j].setValue(value);
+            }
+        }
+        return table;
+    }
 
-    public List<String> parse(String cell) throws ParseException {
+    private String evaluateValue(String expression) throws EvaluateException {
+        if (expression == null || " ".equals(expression)) {
+            return " ";
+        }
+        if (expression.startsWith("'")) {
+            return expression.substring(1);
+        }
+        if (expression.startsWith("=")) {
+            return expression;
+        }
+        try {
+            Integer.parseInt(expression);
+            return expression;
+        } catch (NumberFormatException e) {
+            throw new EvaluateException("NAN");
+        }
+    }
+
+    private List<String> parseExpression(String cell) {
         Stack<String> stack = new Stack<>();
-        StringTokenizer st = new StringTokenizer(cell, delimiter, true);
+        StringTokenizer st = new StringTokenizer(cell.substring(1), DELIMITER, true);
         List<String> rpn = new ArrayList<>();
+        rpn.add("=");
         while (st.hasMoreTokens()) {
             String token = st.nextToken();
 
-            if (delimiter.contains(token)) {
-                Operation operation = Operation.getValue(token);
+            if (DELIMITER.contains(token)) {
+                Operation operation = Operation.fromString(token);
                 while (!stack.empty()) {
-                    if (Operation.getValue(stack.peek()).getPriority() <= operation.getPriority()) {
+                    if (Operation.fromString(stack.peek()).getPriority() <= operation.getPriority()) {
                         rpn.add(stack.pop());
                     } else {
                         break;
@@ -79,6 +118,23 @@ public class Parser {
         while (!stack.empty()) {
             rpn.add(stack.pop());
         }
+        return rpn;
+    }
+
+    private List<String> parseText(String cell) {
+        List<String> rpn = new ArrayList<>();
+        rpn.add("'");
+        rpn.add(cell.substring(1));
+        return rpn;
+    }
+
+    private List<String> parseEmpty() {
+        return new ArrayList<>();
+    }
+
+    private List<String> parseNumber(String cell) {
+        List<String> rpn = new ArrayList<>();
+        rpn.add(cell);
         return rpn;
     }
 }
