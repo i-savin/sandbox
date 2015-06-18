@@ -83,21 +83,25 @@ public class Parser {
             return expression.substring(1);
         }
         if (expression.startsWith("=")) {
-            return expression;
+            try {
+                return parseExpression(expression);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new EvaluateException("EXPR_ERR!");
+            }
         }
         try {
             Integer.parseInt(expression);
             return expression;
         } catch (NumberFormatException e) {
-            throw new EvaluateException("NAN");
+            throw new EvaluateException("NAN!");
         }
     }
 
-    private List<String> parseExpression(String cell) {
+    private String parseExpression(String cell) {
         Stack<String> stack = new Stack<>();
         StringTokenizer st = new StringTokenizer(cell.substring(1), DELIMITER, true);
         List<String> rpn = new ArrayList<>();
-        rpn.add("=");
         while (st.hasMoreTokens()) {
             String token = st.nextToken();
 
@@ -118,7 +122,34 @@ public class Parser {
         while (!stack.empty()) {
             rpn.add(stack.pop());
         }
-        return rpn;
+        int result = 0;
+        Stack<Integer> evaluationStack = new Stack<>();
+        for (String token : rpn) {
+            try {
+                int op = Integer.parseInt(token);
+                evaluationStack.add(op);
+            } catch (NumberFormatException e) {
+                Operation operation = Operation.fromString(token);
+                int op1 = evaluationStack.pop();
+                int op2 = evaluationStack.pop();
+                switch (operation) {
+                    case PLUS:
+                        evaluationStack.add(op2 + op1);
+                        break;
+                    case MINUS:
+                        evaluationStack.add(op2 - op1);
+                        break;
+                    case MUL:
+                        evaluationStack.add(op2 * op1);
+                        break;
+                    case DIV:
+                        evaluationStack.add(op2 / op1);
+                        break;
+                }
+            }
+        }
+        result = evaluationStack.pop();
+        return String.valueOf(result);
     }
 
     private List<String> parseText(String cell) {
