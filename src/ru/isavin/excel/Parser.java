@@ -99,57 +99,61 @@ public class Parser {
     }
 
     private String parseExpression(String cell) {
-        Stack<String> stack = new Stack<>();
         StringTokenizer st = new StringTokenizer(cell.substring(1), DELIMITER, true);
-        List<String> rpn = new ArrayList<>();
+        Stack<Operation> operationStack = new Stack<>();
+        Stack<Integer> operandStack = new Stack<>();
         while (st.hasMoreTokens()) {
             String token = st.nextToken();
-
             if (DELIMITER.contains(token)) {
                 Operation operation = Operation.fromString(token);
-                while (!stack.empty()) {
-                    if (Operation.fromString(stack.peek()).getPriority() <= operation.getPriority()) {
-                        rpn.add(stack.pop());
+                while (!operationStack.empty()) {
+                    if (operationStack.peek().getPriority() <= operation.getPriority()) {
+                        Operation fromStackOperation = operationStack.pop();
+                        int op1 = operandStack.pop();
+                        int op2 = operandStack.pop();
+                        switch (fromStackOperation) {
+                            case PLUS:
+                                operandStack.add(op2 + op1);
+                                break;
+                            case MINUS:
+                                operandStack.add(op2 - op1);
+                                break;
+                            case MUL:
+                                operandStack.add(op2 * op1);
+                                break;
+                            case DIV:
+                                operandStack.add(op2 / op1);
+                                break;
+                        }
                     } else {
                         break;
                     }
                 }
-                stack.add(token);
+                operationStack.add(operation);
             } else {
-                rpn.add(token);
+                operandStack.add(Integer.parseInt(token));
             }
         }
-        while (!stack.empty()) {
-            rpn.add(stack.pop());
-        }
-        int result = 0;
-        Stack<Integer> evaluationStack = new Stack<>();
-        for (String token : rpn) {
-            try {
-                int op = Integer.parseInt(token);
-                evaluationStack.add(op);
-            } catch (NumberFormatException e) {
-                Operation operation = Operation.fromString(token);
-                int op1 = evaluationStack.pop();
-                int op2 = evaluationStack.pop();
-                switch (operation) {
-                    case PLUS:
-                        evaluationStack.add(op2 + op1);
-                        break;
-                    case MINUS:
-                        evaluationStack.add(op2 - op1);
-                        break;
-                    case MUL:
-                        evaluationStack.add(op2 * op1);
-                        break;
-                    case DIV:
-                        evaluationStack.add(op2 / op1);
-                        break;
-                }
+        while (!operationStack.empty()) {
+            Operation fromStackOperation = operationStack.pop();
+            int op1 = operandStack.pop();
+            int op2 = operandStack.pop();
+            switch (fromStackOperation) {
+                case PLUS:
+                    operandStack.add(op2 + op1);
+                    break;
+                case MINUS:
+                    operandStack.add(op2 - op1);
+                    break;
+                case MUL:
+                    operandStack.add(op2 * op1);
+                    break;
+                case DIV:
+                    operandStack.add(op2 / op1);
+                    break;
             }
         }
-        result = evaluationStack.pop();
-        return String.valueOf(result);
+        return operandStack.pop().toString();
     }
 
     private List<String> parseText(String cell) {
