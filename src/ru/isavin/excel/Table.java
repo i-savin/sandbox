@@ -9,6 +9,7 @@ import java.util.StringTokenizer;
  */
 public class Table {
     private final static String DELIMITER = "+-*/";
+    private final static String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     private Cell[][] cells;
 
@@ -50,7 +51,13 @@ public class Table {
             try {
                 return evaluateExpression(expression);
             } catch (Exception e) {
-                e.printStackTrace();
+//                e.printStackTrace();
+//                throw new EvaluateException("EXPR_ERR!");
+            }
+            try {
+                return evaluateExpression(evaluateReference(expression.substring(1)));
+            } catch (Exception e) {
+//                e.printStackTrace();
                 throw new EvaluateException("EXPR_ERR!");
             }
         }
@@ -118,6 +125,14 @@ public class Table {
             }
         }
         return operandStack.pop().toString();
+    }
+
+    private String evaluateReference(String reference) {
+        int column = LETTERS.indexOf(reference.charAt(0));
+//        System.out.println(column);
+        int row = Integer.parseInt(reference.substring(1)) - 1;
+//        System.out.println(row);
+        return cells[row][column].getValue();
     }
 
     @Override
