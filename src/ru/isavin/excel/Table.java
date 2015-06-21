@@ -39,7 +39,6 @@ public class Table {
         }
     }
 
-    //TODO вычислять ссылки
     private String evaluateValue(String expression) throws EvaluateException {
         if (expression == null || " ".equals(expression)) {
             return " ";
@@ -51,13 +50,6 @@ public class Table {
             try {
                 return evaluateExpression(expression);
             } catch (Exception e) {
-//                e.printStackTrace();
-//                throw new EvaluateException("EXPR_ERR!");
-            }
-            try {
-                return evaluateExpression(evaluateReference(expression.substring(1)));
-            } catch (Exception e) {
-//                e.printStackTrace();
                 throw new EvaluateException("EXPR_ERR!");
             }
         }
@@ -69,7 +61,7 @@ public class Table {
         }
     }
 
-    private String evaluateExpression(String cell) {
+    private String evaluateExpression(String cell) throws EvaluateException {
         StringTokenizer st = new StringTokenizer(cell.substring(1), DELIMITER, true);
         Stack<Operation> operationStack = new Stack<>();
         Stack<Integer> operandStack = new Stack<>();
@@ -102,7 +94,11 @@ public class Table {
                 }
                 operationStack.add(operation);
             } else {
-                operandStack.add(Integer.parseInt(token));
+                try {
+                    operandStack.add(Integer.parseInt(token));
+                } catch (NumberFormatException e) {
+                    operandStack.add(Integer.parseInt(evaluateValue(evaluateReference(token))));
+                }
             }
         }
         while (!operationStack.empty()) {
@@ -129,9 +125,7 @@ public class Table {
 
     private String evaluateReference(String reference) {
         int column = LETTERS.indexOf(reference.charAt(0));
-//        System.out.println(column);
         int row = Integer.parseInt(reference.substring(1)) - 1;
-//        System.out.println(row);
         return cells[row][column].getValue();
     }
 
