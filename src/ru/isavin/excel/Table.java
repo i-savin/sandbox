@@ -12,6 +12,7 @@ public class Table {
     private final static String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     private Cell[][] cells;
+    private int referenceDeep;
 
     public Table(Cell[][] cells) {
         this.cells = cells;
@@ -40,14 +41,19 @@ public class Table {
     }
 
     private String evaluateValue(String expression) throws EvaluateException {
+        if (expression.matches("=[A-Za-z][0-9]+")) {
+            return evaluateValue(evaluateReference(expression.substring(1)));
+        }
+
+        if (referenceDeep != 0) {
+            referenceDeep = 0;
+        }
+
         if (expression == null || " ".equals(expression)) {
             return " ";
         }
         if (expression.startsWith("'")) {
             return expression.substring(1);
-        }
-        if (expression.matches("=[A-Za-z][0-9]+")) {
-            return evaluateValue(evaluateReference(expression.substring(1)));
         }
 
         if (expression.startsWith("=")) {
@@ -105,9 +111,14 @@ public class Table {
         return operandStack.pop().toString();
     }
 
-    private String evaluateReference(String reference) {
+    private String evaluateReference(String reference) throws EvaluateException {
+        if (referenceDeep > cells.length * cells[0].length) {
+            referenceDeep = 0;
+            throw new EvaluateException("CYCLIC_REF!");
+        }
         int column = LETTERS.indexOf(reference.charAt(0));
         int row = Integer.parseInt(reference.substring(1)) - 1;
+        referenceDeep++;
         return cells[row][column].getValue();
     }
 
@@ -122,7 +133,7 @@ public class Table {
             case DIV:
                 return op2 / op1;
         }
-        throw new EvaluateException("UNSUPP_OPER");
+        throw new EvaluateException("WRONG_OPER!");
     }
 
     @Override
