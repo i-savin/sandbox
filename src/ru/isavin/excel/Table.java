@@ -46,6 +46,10 @@ public class Table {
         if (expression.startsWith("'")) {
             return expression.substring(1);
         }
+        if (expression.matches("=[A-Za-z][0-9]+")) {
+            return evaluateValue(evaluateReference(expression.substring(1)));
+        }
+
         if (expression.startsWith("=")) {
             try {
                 return evaluateExpression(expression);
@@ -84,7 +88,11 @@ public class Table {
                 try {
                     operandStack.add(Integer.parseInt(token));
                 } catch (NumberFormatException e) {
-                    operandStack.add(Integer.parseInt(evaluateValue(evaluateReference(token))));
+                    try {
+                        operandStack.add(Integer.parseInt(evaluateValue(evaluateReference(token))));
+                    } catch (NumberFormatException nfe) {
+                        throw new EvaluateException("NAN!");
+                    }
                 }
             }
         }
