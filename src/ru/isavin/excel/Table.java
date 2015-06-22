@@ -74,20 +74,7 @@ public class Table {
                         Operation fromStackOperation = operationStack.pop();
                         int op1 = operandStack.pop();
                         int op2 = operandStack.pop();
-                        switch (fromStackOperation) {
-                            case PLUS:
-                                operandStack.add(op2 + op1);
-                                break;
-                            case MINUS:
-                                operandStack.add(op2 - op1);
-                                break;
-                            case MUL:
-                                operandStack.add(op2 * op1);
-                                break;
-                            case DIV:
-                                operandStack.add(op2 / op1);
-                                break;
-                        }
+                        operandStack.add(calculate(op1, op2, fromStackOperation));
                     } else {
                         break;
                     }
@@ -105,20 +92,7 @@ public class Table {
             Operation fromStackOperation = operationStack.pop();
             int op1 = operandStack.pop();
             int op2 = operandStack.pop();
-            switch (fromStackOperation) {
-                case PLUS:
-                    operandStack.add(op2 + op1);
-                    break;
-                case MINUS:
-                    operandStack.add(op2 - op1);
-                    break;
-                case MUL:
-                    operandStack.add(op2 * op1);
-                    break;
-                case DIV:
-                    operandStack.add(op2 / op1);
-                    break;
-            }
+            operandStack.add(calculate(op1, op2, fromStackOperation));
         }
         return operandStack.pop().toString();
     }
@@ -127,6 +101,20 @@ public class Table {
         int column = LETTERS.indexOf(reference.charAt(0));
         int row = Integer.parseInt(reference.substring(1)) - 1;
         return cells[row][column].getValue();
+    }
+
+    private int calculate(int op1, int op2, Operation operation) throws EvaluateException {
+        switch (operation) {
+            case PLUS:
+                return op2 + op1;
+            case MINUS:
+                return op2 - op1;
+            case MUL:
+                return op2 * op1;
+            case DIV:
+                return op2 / op1;
+        }
+        throw new EvaluateException("UNSUPP_OPER");
     }
 
     @Override
