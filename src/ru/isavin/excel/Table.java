@@ -8,7 +8,10 @@ import java.util.StringTokenizer;
  * @since 19.06.15
  */
 public class Table {
-    private final static String DELIMITER = "+-*/";
+    /*
+     * Строка, содержащая все операции в таблице
+     */
+    private final static String DELIMITER = Operation.getOperationsString();    //"+-*/";
     private final static String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     private Cell[][] cells;

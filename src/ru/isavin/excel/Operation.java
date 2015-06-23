@@ -1,9 +1,12 @@
 package ru.isavin.excel;
 
 /**
-* @author ilasavin
-* @since 17.06.15
-*/
+ * Операции, которые можно использовать в таблице
+ * Помимо симольного обозначения у каждной есть приоритет
+ *
+ * @author ilasavin
+ * @since 17.06.15
+ */
 enum Operation {
     PLUS("+", 0),
     MINUS("-", 0),
@@ -36,5 +39,13 @@ enum Operation {
             return Operation.MUL;
         }
         throw new IllegalArgumentException("No enum constant ru.isavin.excel.Parser.Operation." + value);
+    }
+
+    public static String getOperationsString() {
+        StringBuffer sb = new StringBuffer();
+        for (Operation operation : Operation.values()) {
+            sb.append(operation.symbol);
+        }
+        return sb.toString();
     }
 }
