@@ -49,7 +49,11 @@ public class Table {
             referenceDeep = 0;
         }
 
-        if (expression == null || " ".equals(expression)) {
+        if (expression.startsWith("#")) {
+            return expression;
+        }
+
+        if (" ".equals(expression)) {
             return " ";
         }
         if (expression.startsWith("'")) {
