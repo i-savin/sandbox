@@ -1,5 +1,6 @@
 package ru.isavin.excel;
 
+import java.util.Map;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
@@ -15,42 +16,44 @@ public class Table {
     /*
      * Строка, содеражщая буквы английского алфавита для ссылок на ячейки таблицы
      */
-    private final static String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    public final static String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /*
      * Массив ячеек
      */
-    private Cell[][] cells;
+    private Map<String, Cell> cells;
+
+
     /*
      * Глубина рекурсии при вычислении ссылок на ячейки - общая длина "пути" ссылки не может
      * превышать величины произведения сторон таблицы
      */
     private int referenceDeep;
 
-    public Table(Cell[][] cells) {
+    public Table(Map<String, Cell> cells) {
         this.cells = cells;
     }
 
-    public Cell[][] getCells() {
+    public Map<String, Cell> getCells() {
         return cells;
     }
 
-    public void setCells(Cell[][] cells) {
+    public void setCells(Map<String, Cell>cells) {
         this.cells = cells;
     }
 
     public void evaluate() {
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
-                String value;
-                try {
-                    value = evaluateValue(cells[i][j].getValue());
-                } catch (EvaluateException e) {
-                    value = "#" + e.getMessage();
-                }
-                cells[i][j].setValue(value);
-            }
-        }
+//        for (int i = 0; i < cells.length; i++) {
+//            for (int j = 0; j < cells[i].length; j++) {
+//                String value;
+//                try {
+//                    value = evaluateValue(cells[i][j].getValue());
+//                } catch (EvaluateException e) {
+//                    value = "#" + e.getMessage();
+//                }
+//                cells[i][j].setValue(value);
+//            }
+//        }
     }
 
     private String evaluateValue(String expression) throws EvaluateException {
@@ -178,14 +181,15 @@ public class Table {
     private String evaluateReference(String reference) throws EvaluateException {
         //если глубина ссылки превысила произведение сторон таблицы,
         // то это циклическая ссылка
-        if (referenceDeep > cells.length * cells[0].length) {
-            referenceDeep = 0;
-            throw new EvaluateException("CYCLIC_REF!");
-        }
-        int column = LETTERS.indexOf(reference.charAt(0));
-        int row = Integer.parseInt(reference.substring(1)) - 1;
-        referenceDeep++;
-        return cells[row][column].getValue();
+//        if (referenceDeep > cells.length * cells[0].length) {
+//            referenceDeep = 0;
+//            throw new EvaluateException("CYCLIC_REF!");
+//        }
+//        int column = LETTERS.indexOf(reference.charAt(0));
+//        int row = Integer.parseInt(reference.substring(1)) - 1;
+//        referenceDeep++;
+//        return cells[row][column].getValue();
+        return null;
     }
 
     /*
@@ -207,15 +211,16 @@ public class Table {
 
     @Override
     public String toString() {
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < cells.length; i++) {
-            for (int j = 0; j < cells[i].length; j++) {
-                sb.append(cells[i][j].getValue()).append("\t");
-            }
-            if (i < cells.length - 1) {
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
+//        StringBuffer sb = new StringBuffer();
+//        for (int i = 0; i < cells.length; i++) {
+//            for (int j = 0; j < cells[i].length; j++) {
+//                sb.append(cells[i][j].getValue()).append("\t");
+//            }
+//            if (i < cells.length - 1) {
+//                sb.append("\n");
+//            }
+//        }
+//        return sb.toString();
+        return null;
     }
 }
